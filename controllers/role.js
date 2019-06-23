@@ -22,15 +22,45 @@ module.exports = {
 		.catch(error => res.status(400).send(error)),
 
 	// Show => Loads a single item
-	show: (req, res) => Role.findById()
+	show: (req, res) => Role.findById(req.params.id, {
+		include: [{
+			model: User,
+			as: 'users'
+		}],
+	})
 		.then(role => {
-			if (!role) return res.status().send({ message: "Role not found" });
+			if (!role) return res.status(404).send({ message: "Role not found" });
 			return res.status(200).send(role);
 		})
 		.catch(error => res.status(400).send(error)),
 
+
+	// Add user
+	addUser: (req, res) => Role.findById(req.body.role_id, {
+		include: [{
+			model: User,
+			as: 'users'
+		}],
+	})
+		.then(role => {
+			if (!role) return res.status(404).send({ message: "Role not found" });
+
+			User.findById(req.body.role_id)
+				.then(course => {
+					if (!course) return res.status(404).send({ message: "User not found" });
+
+					role.addUser(course);
+					return res.status(200).send(role);
+				})
+				.catch(error => res.status(400).send(error));
+		})
+		.catch(error => res.status(400).send(error)),
+
+
+
+
 	// Update => updates the resource.
-	upadate: (req, res) => Role.findById(req.params.id, {
+	update: (req, res) => Role.findById(req.params.id, {
 		include: [{
 			model: User,
 			as: 'users'
